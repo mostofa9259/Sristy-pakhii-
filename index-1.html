@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Dear Sristy ❤️</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#020006;font-family:Arial,Helvetica,sans-serif}
+body{background:radial-gradient(circle at center,rgba(255,0,100,.18),rgba(50,0,30,.08) 35%,#020006 75%)}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.intro{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:#020006;color:white;text-align:center;font-size:clamp(15px,5vw,27px);letter-spacing:5px;animation:introHide 3.5s forwards;pointer-events:none}
+.intro span{animation:introText 2s ease forwards;text-shadow:0 0 10px #fff,0 0 25px #ff4d91,0 0 50px #ff0066,0 0 90px #ff0066}
+@keyframes introText{0%{opacity:0;transform:scale(.5);letter-spacing:20px}50%{opacity:1;transform:scale(1.05);letter-spacing:5px}100%{opacity:1;transform:scale(1)}}
+@keyframes introHide{0%,75%{opacity:1}100%{opacity:0;visibility:hidden}}
+.top-title{position:fixed;top:6.5%;width:100%;text-align:center;z-index:5;color:#fff;font-size:clamp(18px,5vw,30px);font-weight:600;letter-spacing:3px;pointer-events:none;animation:titleGlow 2.5s infinite alternate}
+@keyframes titleGlow{from{opacity:.65;transform:scale(.98);text-shadow:0 0 5px #fff,0 0 15px #ff4d91,0 0 25px #ff0066}to{opacity:1;transform:scale(1.04);text-shadow:0 0 8px #fff,0 0 20px #ff7baa,0 0 40px #ff0066,0 0 70px #ff0066}}
+.bottom-message{position:fixed;bottom:6.5%;left:50%;transform:translateX(-50%);z-index:5;color:#fff;font-size:clamp(15px,4vw,22px);font-weight:500;letter-spacing:3px;white-space:nowrap;pointer-events:none;animation:bottomGlow 2s infinite alternate}
+@keyframes bottomGlow{from{opacity:.65;text-shadow:0 0 5px #fff,0 0 15px #ff4d91}to{opacity:1;text-shadow:0 0 8px #fff,0 0 20px #ff4d91,0 0 40px #ff0066}}
+</style>
+</head>
+<body>
+<div class="intro"><span>Ekta Kotha Bolbo... ❤️</span></div>
+<canvas id="canvas"></canvas>
+<div class="top-title">My dear Sristy ❤️</div>
+<div class="bottom-message">Your lover ❤️</div>
+
+<script>
+const canvas=document.getElementById("canvas"),ctx=canvas.getContext("2d");
+let W,H,CX,CY,particles=[],stars=[],sparkles=[],time=0;
+let rotationX=0,rotationY=0,targetX=0,targetY=0;
+const DPR=Math.min(window.devicePixelRatio||1,2);
+
+function resize(){
+ W=innerWidth;H=innerHeight;
+ canvas.width=W*DPR;canvas.height=H*DPR;
+ canvas.style.width=W+"px";canvas.style.height=H+"px";
+ ctx.setTransform(DPR,0,0,DPR,0,0);
+ CX=W/2;CY=H/2;
+}
+resize();
+
+function heartPoint(t,scale){
+ const x=16*Math.pow(Math.sin(t),3);
+ const y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
+ return{x:x*scale,y:-y*scale};
+}
+
+function createHeart(){
+ particles=[];
+ const count=W<600?115:150;
+ const scale=Math.min(W,H)*.017;
+ for(let i=0;i<count;i++){
+  const t=i/count*Math.PI*2,p=heartPoint(t,scale);
+  const spread=scale*.12;
+  particles.push({
+   baseX:p.x+(Math.random()-.5)*spread,
+   baseY:p.y+(Math.random()-.5)*spread,
+   baseZ:(Math.random()-.5)*scale*1.1,
+   text:"Rag Koro na sonaa",
+   size:W<600?8.5:10
+  });
+ }
+}
+
+function createStars(){
+ stars=[];
+ const count=W<600?70:120;
+ for(let i=0;i<count;i++) stars.push({
+  x:Math.random()*W,y:Math.random()*H,
+  size:Math.random()*1.5+.3,
+  alpha:Math.random()*.65+.15,
+  phase:Math.random()*Math.PI*2
+ });
+}
+
+function createSparkle(){
+ const a=Math.random()*Math.PI*2,r=Math.min(W,H)*(.25+Math.random()*.15);
+ sparkles.push({x:CX+Math.cos(a)*r,y:CY+Math.sin(a)*r,life:0,maxLife:40+Math.random()*50,size:Math.random()*2+1});
+}
+
+function rotate3D(x,y,z,rx,ry){
+ const cx=Math.cos(rx),sx=Math.sin(rx);
+ const y1=y*cx-z*sx,z1=y*sx+z*cx;
+ const cy=Math.cos(ry),sy=Math.sin(ry);
+ return{x:x*cy+z1*sy,y:y1,z:-x*sy+z1*cy};
+}
+
+let dragging=false,lastX=0,lastY=0;
+addEventListener("mousemove",e=>{
+ if(!dragging){
+  targetY=(e.clientX/W-.5)*.28;
+  targetX=(e.clientY/H-.5)*.16;
+ }else{
+  targetY+=(e.clientX-lastX)*.008;
+  targetX+=(e.clientY-lastY)*.008;
+  lastX=e.clientX;lastY=e.clientY;
+ }
+});
+addEventListener("mousedown",e=>{dragging=true;lastX=e.clientX;lastY=e.clientY});
+addEventListener("mouseup",()=>dragging=false);
+addEventListener("touchstart",e=>{const t=e.touches[0];dragging=true;lastX=t.clientX;lastY=t.clientY});
+addEventListener("touchmove",e=>{
+ if(!dragging)return;
+ const t=e.touches[0];
+ targetY+=(t.clientX-lastX)*.01;
+ targetX+=(t.clientY-lastY)*.01;
+ lastX=t.clientX;lastY=t.clientY;
+ e.preventDefault();
+},{passive:false});
+addEventListener("touchend",()=>dragging=false);
+
+function drawStars(){
+ for(const s of stars){
+  ctx.save();
+  ctx.globalAlpha=Math.max(.05,s.alpha+Math.sin(time*2+s.phase)*.2);
+  ctx.fillStyle="#fff";ctx.shadowColor="#fff";ctx.shadowBlur=7;
+  ctx.beginPath();ctx.arc(s.x,s.y,s.size,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+ }
+}
+
+function drawRings(){
+ const radius=Math.min(W,H)*.31;
+ for(let i=0;i<3;i++){
+  const pulse=Math.sin(time*1.5+i)*7;
+  ctx.save();
+  ctx.strokeStyle=`rgba(255,40,120,${.10-i*.018})`;
+  ctx.lineWidth=1;ctx.shadowColor="#ff0066";ctx.shadowBlur=15;
+  ctx.beginPath();
+  ctx.ellipse(CX,CY,radius+pulse+i*15,radius*.62+pulse,rotationY*.3,0,Math.PI*2);
+  ctx.stroke();ctx.restore();
+ }
+}
+
+function drawSparkles(){
+ if(Math.random()<.16)createSparkle();
+ for(let i=sparkles.length-1;i>=0;i--){
+  const s=sparkles[i];s.life++;
+  const a=Math.sin((s.life/s.maxLife)*Math.PI);
+  ctx.save();ctx.globalAlpha=a;ctx.strokeStyle="#fff";ctx.shadowColor="#ff5c9a";ctx.shadowBlur=15;ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(s.x-s.size*3,s.y);ctx.lineTo(s.x+s.size*3,s.y);
+  ctx.moveTo(s.x,s.y-s.size*3);ctx.lineTo(s.x,s.y+s.size*3);
+  ctx.stroke();ctx.restore();
+  if(s.life>=s.maxLife)sparkles.splice(i,1);
+ }
+}
+
+function drawHeart(){
+ const projected=[],breathe=1+Math.sin(time*2)*.025;
+ for(const p of particles){
+  const r=rotate3D(p.baseX*breathe,p.baseY*breathe,p.baseZ,rotationX,rotationY);
+  const perspective=700/(700+r.z);
+  projected.push({x:CX+r.x*perspective,y:CY+r.y*perspective,z:r.z,scale:perspective,size:p.size*perspective,text:p.text});
+ }
+ projected.sort((a,b)=>b.z-a.z);
+ for(const p of projected){
+  const fs=Math.max(7,p.size),alpha=Math.max(.42,Math.min(1,p.scale));
+  ctx.save();ctx.globalAlpha=alpha;ctx.shadowColor="#ff0066";ctx.shadowBlur=5;
+  ctx.font=`bold ${fs}px Arial`;ctx.textAlign="center";ctx.textBaseline="middle";
+  const g=ctx.createLinearGradient(p.x-35,p.y-10,p.x+35,p.y+10);
+  g.addColorStop(0,"#fff");g.addColorStop(.5,"#ffd4e2");g.addColorStop(1,"#ff3d81");
+  ctx.fillStyle=g;ctx.fillText(p.text,p.x,p.y);ctx.restore();
+ }
+}
+
+function centerGlow(){
+ const radius=Math.min(W,H)*.35+Math.sin(time*2)*12;
+ const g=ctx.createRadialGradient(CX,CY,10,CX,CY,radius);
+ g.addColorStop(0,"rgba(255,0,90,.09)");
+ g.addColorStop(.45,"rgba(255,0,90,.035)");
+ g.addColorStop(1,"rgba(255,0,90,0)");
+ ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+}
+
+function animate(){
+ requestAnimationFrame(animate);time+=.01;
+ if(!dragging)targetY+=.0015;
+ rotationX+=(targetX-rotationX)*.045;
+ rotationY+=(targetY-rotationY)*.045;
+ ctx.fillStyle="rgba(2,0,6,.25)";ctx.fillRect(0,0,W,H);
+ centerGlow();drawStars();drawRings();drawHeart();drawSparkles();
+}
+
+addEventListener("resize",()=>{resize();createHeart();createStars()});
+addEventListener("dblclick",()=>{targetX=0;targetY=0});
+createHeart();createStars();animate();
+</script>
+</body>
+</html>
